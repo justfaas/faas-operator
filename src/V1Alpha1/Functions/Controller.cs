@@ -38,6 +38,7 @@ public sealed class V1Alpha1FunctionController : KubeController<V1Alpha1Function
     protected override async Task DeletedAsync( V1Alpha1Function func )
     {
         await reconciler.DeleteAsync<V1Ingress>( func );
+        await reconciler.DeleteAsync<V1CronJob>( func );
         await reconciler.DeleteAsync<V2HorizontalPodAutoscaler>( func );
         await reconciler.DeleteAsync<V1Service>( func );
         await reconciler.DeleteAsync<V1Deployment>( func );
@@ -48,6 +49,7 @@ public sealed class V1Alpha1FunctionController : KubeController<V1Alpha1Function
         await ReconcileDeploymentAsync( func );
         await ReconcileServiceAsync( func );
         await ReconcileScalerAsync( func );
+        await ReconcileCronJobAsync( func );
         await ReconcileIngressAsync( func );
     }
 
@@ -76,6 +78,34 @@ public sealed class V1Alpha1FunctionController : KubeController<V1Alpha1Function
             .SetManagedByLabel();
 
         await reconciler.ReconcileAsync( func, hpa );
+    }
+
+    private async Task ReconcileCronJobAsync( V1Alpha1Function func )
+    {
+        var cronExpression = func.GetAnnotationValue( OperatorAnnotations.CronExpression, string.Empty );
+
+        if ( string.IsNullOrEmpty( cronExpression ) )
+        {
+            await reconciler.DeleteAsync<V1CronJob>( func );
+
+            return;
+        }
+
+        // if the function is inside a workspace we should invoke the gateway
+        // from the same namespace, since we might not be able to access outside that namespace
+        // if the function is not inside a workspace, we invoke the root gateway
+        V1Deployment? gatewayDeployment = await client.GetFaaSGatewayDeploymentAsync( func.Namespace() );
+
+        if ( gatewayDeployment != null )
+        {
+            func.SetAnnotation( OperatorAnnotations.GatewayNamespace.Key, gatewayDeployment.Namespace() );
+        }
+
+        var job = new V1Alpha1CronJobBuilder()
+            .Build( func, func.Namespace() )
+            .SetManagedByLabel();
+
+        await reconciler.ReconcileAsync<V1CronJob>( func, job );
     }
 
     private async Task ReconcileIngressAsync( V1Alpha1Function func )
