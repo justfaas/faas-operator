@@ -4,15 +4,6 @@ using k8s;
 using k8s.Autorest;
 using k8s.Models;
 
-/*
-TODO: listen only to resources on `faas` namespace
-The current implementation of KubeController watches for resources
-of type T in all namespaces. Since we are only interested in workspaces
-created on `faas` namespace, it would be best to listen only on that namespace.
-
-Maybe an override...
-*/
-
 public sealed class V1Alpha1WorkspaceController : KubeController<V1Alpha1Workspace>
 {
     private readonly ILogger logger;
@@ -29,6 +20,8 @@ public sealed class V1Alpha1WorkspaceController : KubeController<V1Alpha1Workspa
         logger = loggerFactory.CreateLogger<V1Alpha1WorkspaceController>();
         client = kubernetesClient;
         reconciler = reconciliationService;
+
+        Namespace = "faas";
     }
 
     protected override async Task InitializeAsync( CancellationToken stoppingToken )
@@ -44,16 +37,6 @@ public sealed class V1Alpha1WorkspaceController : KubeController<V1Alpha1Workspa
             await StopAsync();
         }
     }
-
-    protected override Task<HttpOperationResponse<object>> ListObjectAsync( KubernetesEntityAttribute attr, CancellationToken cancellationToken )
-        => client.CustomObjects.ListNamespacedCustomObjectWithHttpMessagesAsync(
-            group: attr.Group,
-            version: attr.ApiVersion,
-            namespaceParameter: "faas",
-            plural: attr.GetPluralName(),
-            watch: true,
-            cancellationToken: cancellationToken
-        );
 
     protected override async Task DeletedAsync( V1Alpha1Workspace ws )
     {
@@ -105,17 +88,6 @@ public sealed class V1Alpha1WorkspaceController : KubeController<V1Alpha1Workspa
 
     protected override async Task ReconcileAsync( V1Alpha1Workspace ws )
     {
-        if ( !ws.Namespace().Equals( "faas" ) )
-        {
-            // workspaces created outside 'faas' namespace are ignored
-            var attr = ws.GetType()
-                .GetKubernetesEntityAttribute();
-
-            logger.LogWarning( $"{attr.GetKindDescription()}/{ws.Name()} is not managed by the operator." );
-
-            return;
-        }
-
         await ReconcileNamespaceAsync( ws );
         await ReconcileServiceAccountAsync( ws );
         await ReconcileRoleAsync( ws );

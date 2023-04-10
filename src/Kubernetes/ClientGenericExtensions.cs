@@ -1,4 +1,3 @@
-using System.Text.Json;
 using k8s;
 using k8s.Autorest;
 using k8s.Models;
@@ -220,12 +219,5 @@ public static class KubernetesClientGenericExtensions
             Request = response.Request,
             Response = response.Response
         };
-    }
-
-    public static GenericClient WithType<T>( this IKubernetes client ) where T : IKubernetesObject
-    {
-        var attr = typeof( T ).GetKubernetesEntityAttribute();
-
-        return new GenericClient( client, attr.Group, attr.ApiVersion, attr.GetPluralName() );
     }
 }
