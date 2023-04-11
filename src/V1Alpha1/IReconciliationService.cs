@@ -8,11 +8,3 @@ public interface IReconciliationService<TObject> where TObject : IKubernetesObje
 
     Task<T?> GetObjectAsync<T>( TObject source ) where T : IKubernetesObject<V1ObjectMeta>;
 }
-
-/*
-TODO: optimize reconciliation services
-
-There is probably duplicate code in both reconciliation services. It's probably
-a good idea to breate a base service class with the duplicate code and override
-custom behaviour where needed.
-*/

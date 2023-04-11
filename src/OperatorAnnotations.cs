@@ -11,7 +11,7 @@ internal static class OperatorAnnotations
     public const string CronTimezone = "justfaas.com/cron-timezone";
 
     /// <summary>
-    /// Indicates the namespace of the gateway that owns the function. This is an internal runtime-only annotation.
+    /// Indicates the namespace of the gateway that operates the function. This is an internal runtime-only annotation.
     /// </summary>
-    public static readonly ( string Key, string Default ) GatewayNamespace = ( "justfaas.com/gateway-namespace", "faas" );
+    internal static readonly ( string Key, string Default ) GatewayNamespace = ( "justfaas.com/gateway-namespace", "faas" );
 }
