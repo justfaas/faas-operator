@@ -14,19 +14,49 @@ public sealed class V1Alpha1DeploymentBuilder
         {
             foreach ( var secretName in func.Spec.Secrets )
             {
+                var volumeName = string.Concat( secretName, "-secret-vol" );
+
                 var volumeMount = new V1VolumeMount
                 {
-                    Name = secretName,
+                    Name = volumeName,
                     MountPath = "/var/faas/secrets",
                     ReadOnlyProperty = true
                 };
 
                 var volume = new V1Volume
                 {
-                    Name = secretName,
+                    Name = volumeName,
                     Secret = new V1SecretVolumeSource
                     {
                         SecretName = secretName,
+                        Optional = true
+                    }
+                };
+
+                volumes.Add( volume );
+                volumeMounts.Add( volumeMount );
+            }
+        }
+
+        if ( func.Spec.ConfigMaps?.Any() == true )
+        {
+            foreach ( var configName in func.Spec.ConfigMaps )
+            {
+                var volumeName = string.Concat( configName, "-config-vol" );
+
+                var volumeMount = new V1VolumeMount
+                {
+                    Name = volumeName,
+                    MountPath = "/var/faas/config",
+                    ReadOnlyProperty = true
+                };
+
+                var volume = new V1Volume
+                {
+                    Name = volumeName,
+                    ConfigMap = new V1ConfigMapVolumeSource
+                    {
+                        Name = configName,
                         Optional = true
                     }
                 };

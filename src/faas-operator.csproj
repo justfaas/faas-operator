@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Faactory.FaaS.Kubernetes.Models" Version="0.2.1" />
-    <PackageReference Include="KubernetesClient" Version="10.1.4" />
+    <PackageReference Include="JustFaaS.Kubernetes.Models" Version="0.1.2" />
+    <PackageReference Include="KubernetesClient" Version="10.1.19" />
     <PackageReference Include="KubernetesOperatorSdk" Version="0.1.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
   </ItemGroup>
