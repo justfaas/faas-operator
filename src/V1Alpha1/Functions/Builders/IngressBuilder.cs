@@ -44,7 +44,7 @@ public sealed class V1Alpha1IngressBuilder
                     { "kubernetes.io/ingress.class", "nginx" },
                     { "nginx.ingress.kubernetes.io/enable-cors", "true" },
                     { 
-                        "nginx.ingress.kubernetes.io/rewrite-target", $"/proxy/{func.Name()}/$1"
+                        "nginx.ingress.kubernetes.io/rewrite-target", $"/proxy/{func.Namespace()}/{func.Name()}/$1"
                     },
                 }
             },
