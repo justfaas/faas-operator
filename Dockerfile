@@ -1,16 +1,21 @@
 # Build the operator
-#FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:7.0 as build
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/nightly/sdk:8.0-preview AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:7.0 as build
 ARG TARGETARCH
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 WORKDIR /operator
 
 RUN apt update && apt install libxml2-utils -y
 
+# restore dependencies
 COPY ./src/faas-operator.csproj ./
-COPY add-nuget-config.sh /tmp/
-RUN chmod u+x /tmp/add-nuget-config.sh
-RUN --mount=type=secret,id=nuget.config /tmp/add-nuget-config.sh nuget.config \
-    dotnet restore -a $TARGETARCH
+RUN --mount=type=secret,id=GITHUB_TOKEN \
+    dotnet nuget add source \
+        --store-password-in-clear-text \
+        -n justfaas \
+        -u justfaas \
+        -p $(cat /run/secrets/GITHUB_TOKEN) \
+        https://nuget.pkg.github.com/justfaas/index.json
+RUN dotnet restore -a $TARGETARCH
 
 COPY ./src/. ./
 RUN dotnet publish -c release -a $TARGETARCH -o dist faas-operator.csproj
