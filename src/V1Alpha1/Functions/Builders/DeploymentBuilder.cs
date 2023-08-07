@@ -9,6 +9,7 @@ public sealed class V1Alpha1DeploymentBuilder
     {
         var volumes = new List<V1Volume>();
         var volumeMounts = new List<V1VolumeMount>();
+        var secretMountPath = func.GetAnnotationValue( OperatorAnnotations.SecretsMountPath );
 
         if ( func.Spec.Secrets?.Any() == true )
         {
@@ -19,7 +20,7 @@ public sealed class V1Alpha1DeploymentBuilder
                 var volumeMount = new V1VolumeMount
                 {
                     Name = volumeName,
-                    MountPath = "/var/faas/secrets",
+                    MountPath = secretMountPath,
                     ReadOnlyProperty = true
                 };
 
