@@ -29,12 +29,15 @@ public class DeploymentBuilderTests
 
         var deployment = new V1Alpha1DeploymentBuilder().Build( function, "test" );
 
+        Assert.Single( deployment.Spec.Template.Spec.Volumes );
+        Assert.Equal( 2, deployment.Spec.Template.Spec.Volumes.Single().Projected.Sources.Count );
+        Assert.Equal( "secret1", deployment.Spec.Template.Spec.Volumes[0].Projected.Sources[0].Secret.Name );
+        Assert.Equal( "secret2", deployment.Spec.Template.Spec.Volumes[0].Projected.Sources[1].Secret.Name );
+
         Assert.Single( deployment.Spec.Template.Spec.Containers );
-        Assert.Equal( 2, deployment.Spec.Template.Spec.Containers.Single().VolumeMounts.Count );
-        Assert.Equal( "secret1-secret-vol", deployment.Spec.Template.Spec.Containers[0].VolumeMounts[0].Name );
-        Assert.Equal( "secret2-secret-vol", deployment.Spec.Template.Spec.Containers[0].VolumeMounts[1].Name );
+        Assert.Single( deployment.Spec.Template.Spec.Containers.Single().VolumeMounts );
         Assert.Equal( "/var/faas/secrets", deployment.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath );
-        Assert.Equal( "/var/faas/secrets", deployment.Spec.Template.Spec.Containers[0].VolumeMounts[1].MountPath );
+
 
         // annotate custom secrets mount path
         function.Metadata.Annotations = new Dictionary<string, string>
@@ -45,11 +48,13 @@ public class DeploymentBuilderTests
         // rebuild deployment
         deployment = new V1Alpha1DeploymentBuilder().Build( function, "test" );
 
+        Assert.Single( deployment.Spec.Template.Spec.Volumes );
+        Assert.Equal( 2, deployment.Spec.Template.Spec.Volumes.Single().Projected.Sources.Count );
+        Assert.Equal( "secret1", deployment.Spec.Template.Spec.Volumes[0].Projected.Sources[0].Secret.Name );
+        Assert.Equal( "secret2", deployment.Spec.Template.Spec.Volumes[0].Projected.Sources[1].Secret.Name );
+
         Assert.Single( deployment.Spec.Template.Spec.Containers );
-        Assert.Equal( 2, deployment.Spec.Template.Spec.Containers.Single().VolumeMounts.Count );
-        Assert.Equal( "secret1-secret-vol", deployment.Spec.Template.Spec.Containers[0].VolumeMounts[0].Name );
-        Assert.Equal( "secret2-secret-vol", deployment.Spec.Template.Spec.Containers[0].VolumeMounts[1].Name );
+        Assert.Single( deployment.Spec.Template.Spec.Containers.Single().VolumeMounts );
         Assert.Equal( "/app/secrets", deployment.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath );
-        Assert.Equal( "/app/secrets", deployment.Spec.Template.Spec.Containers[0].VolumeMounts[1].MountPath );
     }
 }

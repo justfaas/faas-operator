@@ -13,58 +13,63 @@ public sealed class V1Alpha1DeploymentBuilder
 
         if ( func.Spec.Secrets?.Any() == true )
         {
-            foreach ( var secretName in func.Spec.Secrets )
+            var volumeName = string.Concat( func.Name(), "-projected-secrets" );
+
+            var volumeMount = new V1VolumeMount
             {
-                var volumeName = string.Concat( secretName, "-secret-vol" );
+                Name = volumeName,
+                MountPath = secretMountPath,
+                ReadOnlyProperty = true
+            };
 
-                var volumeMount = new V1VolumeMount
+            var volume = new V1Volume
+            {
+                Name = volumeName,
+                Projected = new V1ProjectedVolumeSource
                 {
-                    Name = volumeName,
-                    MountPath = secretMountPath,
-                    ReadOnlyProperty = true
-                };
-
-                var volume = new V1Volume
-                {
-                    Name = volumeName,
-                    Secret = new V1SecretVolumeSource
+                    Sources = func.Spec.Secrets.Select( x => new V1VolumeProjection
                     {
-                        SecretName = secretName,
-                        Optional = true
-                    }
-                };
+                        Secret = new V1SecretProjection
+                        {
+                            Name = x
+                        }
+                    } ).ToList()
+                }
+            };
 
-                volumes.Add( volume );
-                volumeMounts.Add( volumeMount );
-            }
+            volumeMounts.Add( volumeMount );
+            volumes.Add( volume );
         }
 
         if ( func.Spec.ConfigMaps?.Any() == true )
         {
-            foreach ( var configName in func.Spec.ConfigMaps )
+            var volumeName = string.Concat( func.Name(), "-projected-configmap" );
+
+            var volumeMount = new V1VolumeMount
             {
-                var volumeName = string.Concat( configName, "-config-vol" );
+                Name = volumeName,
+                MountPath = "/var/faas/config",
+                ReadOnlyProperty = true
+            };
 
-                var volumeMount = new V1VolumeMount
+            var volume = new V1Volume
+            {
+                Name = volumeName,
+                Projected = new V1ProjectedVolumeSource
                 {
-                    Name = volumeName,
-                    MountPath = "/var/faas/config",
-                    ReadOnlyProperty = true
-                };
-
-                var volume = new V1Volume
-                {
-                    Name = volumeName,
-                    ConfigMap = new V1ConfigMapVolumeSource
+                    Sources = func.Spec.ConfigMaps.Select( x => new V1VolumeProjection
                     {
-                        Name = configName,
-                        Optional = true
-                    }
-                };
+                        ConfigMap = new V1ConfigMapProjection
+                        {
+                            Name = x,
+                            Optional = true
+                        }
+                    } ).ToList()
+                }
+            };
 
-                volumes.Add( volume );
-                volumeMounts.Add( volumeMount );
-            }
+            volumeMounts.Add( volumeMount );
+            volumes.Add( volume );
         }
 
         var deployment = new V1Deployment
