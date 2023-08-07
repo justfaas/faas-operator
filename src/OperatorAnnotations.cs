@@ -11,6 +11,11 @@ internal static class OperatorAnnotations
     public const string CronTimezone = "justfaas.com/cron-timezone";
 
     /// <summary>
+    /// The mount path for the function's secrets.
+    /// </summary>
+    public static readonly ( string Key, string Default ) SecretsMountPath = ( "justfaas.com/secrets-mount-path", "/var/faas/secrets" );
+
+    /// <summary>
     /// Indicates the namespace of the gateway that operates the function. This is an internal runtime-only annotation.
     /// </summary>
     internal static readonly ( string Key, string Default ) GatewayNamespace = ( "justfaas.com/gateway-namespace", "faas" );
