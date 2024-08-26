@@ -24,9 +24,9 @@ public sealed class V1Alpha1WorkspaceController : KubeController<V1Alpha1Workspa
         Namespace = "faas";
     }
 
-    protected override async Task InitializeAsync( CancellationToken stoppingToken )
+    protected override async Task InitializeAsync( CancellationToken cancellationToken )
     {
-        var installed = await client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
+        var installed = await client.ApiextensionsV1.ListCustomResourceDefinitionAsync( cancellationToken: cancellationToken );
 
         crds = installed.Items.ToArray();
 
@@ -34,7 +34,7 @@ public sealed class V1Alpha1WorkspaceController : KubeController<V1Alpha1Workspa
         {
             logger.LogError( "CRDs for 'workspaces.justfaas.com' are not installed." );
 
-            await StopAsync();
+            await StopAsync( CancellationToken.None );
         }
     }
 
@@ -46,7 +46,7 @@ public sealed class V1Alpha1WorkspaceController : KubeController<V1Alpha1Workspa
             var attr = ws.GetType()
                 .GetKubernetesEntityAttribute();
 
-            logger.LogWarning( $"{attr.GetKindDescription()}/{ws.Name()} is not managed by the operator." );
+            logger.LogWarning( "{Kind}/{Name} is not managed by the operator.", attr.GetKindDescription(), ws.Name() );
 
             return;
         }
@@ -76,7 +76,7 @@ public sealed class V1Alpha1WorkspaceController : KubeController<V1Alpha1Workspa
             var attr = typeof( V1Namespace )
                 .GetKubernetesEntityAttribute();
 
-            logger.LogWarning( $"{attr.GetKindDescription()}/{existing.Name()} exists but it is not managed by the operator." );
+            logger.LogWarning( "{Kind}/{Name} exists but it is not managed by the operator.", attr.GetKindDescription(), existing.Name() );
             return;
         }
 
@@ -110,7 +110,7 @@ public sealed class V1Alpha1WorkspaceController : KubeController<V1Alpha1Workspa
             var attr = typeof( V1Namespace )
                 .GetKubernetesEntityAttribute();
 
-            logger.LogWarning( $"{attr.GetKindDescription()}/{existing.Name()} exists but it is not managed by the operator." );
+            logger.LogWarning( "{Kind}/{Name} exists but it is not managed by the operator.", attr.GetKindDescription(), existing.Name() );
             return;
         }
 
@@ -142,7 +142,7 @@ public sealed class V1Alpha1WorkspaceController : KubeController<V1Alpha1Workspa
             }
             catch ( k8s.Autorest.HttpOperationException ex )
             {
-                logger.LogError( $"{ex.Message}\n{ex.Response.Content}" );
+                logger.LogError( "{Error}\n{Content}", ex.Message, ex.Response.Content );
             }
         }
     }

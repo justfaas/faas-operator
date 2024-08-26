@@ -21,9 +21,9 @@ public sealed class V1Alpha1FunctionController : KubeController<V1Alpha1Function
         reconciler = reconciliationService;
     }
 
-    protected override async Task InitializeAsync( CancellationToken stoppingToken )
+    protected override async Task InitializeAsync( CancellationToken cancellationToken )
     {
-        var installed = await client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
+        var installed = await client.ApiextensionsV1.ListCustomResourceDefinitionAsync( cancellationToken: cancellationToken );
 
         crds = installed.Items.ToArray();
 
@@ -31,7 +31,7 @@ public sealed class V1Alpha1FunctionController : KubeController<V1Alpha1Function
         {
             logger.LogError( "CRDs for 'functions.justfaas.com' are not installed." );
 
-            await StopAsync();
+            await StopAsync( CancellationToken.None );
         }
     }
 
@@ -127,7 +127,11 @@ public sealed class V1Alpha1FunctionController : KubeController<V1Alpha1Function
         {
             // if we can't find a suitable gateway deployment
             // we can't create the ingress
-            logger.LogWarning( $"ingress.networking.k8s.io/{func.Namespace()}.{func.Name()} not created. No suitable gateway was found." );
+            logger.LogWarning(
+                "ingress.networking.k8s.io/{Namespace}.{Name} not created. No suitable gateway was found.",
+                func.Namespace(),
+                func.Name()
+            );
 
             return;
         }

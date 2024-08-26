@@ -32,7 +32,7 @@ public sealed class ReconciliationService<TObject> : IReconciliationService<TObj
             var attr = typeof( T )
                 .GetKubernetesEntityAttribute();
 
-            logger.LogWarning( $"{attr.GetKindDescription()}/{obj.Name()} exists but it is not managed by the operator." );
+            logger.LogWarning( "{Kind}/{Name} exists but it is not managed by the operator.", attr.GetKindDescription(), obj.Name() );
             return;
         }
 
@@ -53,7 +53,7 @@ public sealed class ReconciliationService<TObject> : IReconciliationService<TObj
             var attr = typeof( T )
                 .GetKubernetesEntityAttribute();
 
-            logger.LogWarning( $"{attr.GetKindDescription()}/{existing.Name()} exists but it is not managed by the operator." );
+            logger.LogWarning( "{Kind}/{Name} exists but it is not managed by the operator.", attr.GetKindDescription(), existing.Name() );
             return;
         }
 
@@ -86,7 +86,7 @@ public sealed class ReconciliationService<TObject> : IReconciliationService<TObj
         {
             if ( ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound )
             {
-                return ( default( T ) );
+                return default( T );
             }
 
             // something else...
@@ -124,7 +124,7 @@ public sealed class ReconciliationService<TObject> : IReconciliationService<TObj
         }
         catch ( k8s.Autorest.HttpOperationException ex )
         {
-            logger.LogError( $"{ex.Message}\n{ex.Response.Content}" );
+            logger.LogError( "{Error}\n{Content}", ex.Message, ex.Response.Content );
         }
     }
 }

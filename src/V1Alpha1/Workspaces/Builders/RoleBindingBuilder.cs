@@ -28,17 +28,17 @@ public sealed class V1Alpha1RoleBindingBuilder
                 Kind = "Role",
                 Name = "gateway"
             },
-            Subjects = new List<V1Subject>
-            {
-                new V1Subject
+            Subjects =
+            [
+                new Rbacv1Subject
                 {
                     Kind = "ServiceAccount",
                     Name = "gateway",
                     NamespaceProperty = ws.Name()
                 }
-            }
+            ]
         };
 
-        return ( binding );
+        return binding;
     }
 }
