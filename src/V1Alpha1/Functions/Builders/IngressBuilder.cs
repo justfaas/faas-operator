@@ -27,6 +27,10 @@ public sealed class V1Alpha1IngressBuilder
             ? $"{func.Namespace()}.{func.Name()}"
             : func.Name();
 
+        var ingressAnnotations = func.Metadata.Annotations?.Where( x => x.Key.StartsWith( "nginx.ingress.kubernetes.io/" ) )
+            .ToDictionary( x => x.Key, x => x.Value )
+            ?? [];
+
         var ingress = new V1Ingress
         {
             ApiVersion = $"{V1Ingress.KubeGroup}/{V1Ingress.KubeApiVersion}",
@@ -39,7 +43,7 @@ public sealed class V1Alpha1IngressBuilder
                 {
                     { AppLabels.Name, func.NamespacedName() },
                 },
-                Annotations = new Dictionary<string, string>
+                Annotations = new Dictionary<string, string>( ingressAnnotations )
                 {
                     { "kubernetes.io/ingress.class", "nginx" },
                     { "nginx.ingress.kubernetes.io/enable-cors", "true" },
